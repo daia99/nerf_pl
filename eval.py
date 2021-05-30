@@ -142,7 +142,9 @@ if __name__ == "__main__":
             img_gt = rgbs.view(h, w, 3)
             psnrs += [metrics.psnr(img_gt, img_pred).item()]
         
-    imageio.mimsave(os.path.join(dir_name, f'{args.scene_name}.gif'), imgs, fps=30)
+#     imageio.mimsave(os.path.join(dir_name, f'{args.scene_name}.gif'), imgs, fps=30)
+    os.system('ffmpeg -r 30 -i {}/%03d.png -c:v libx264 -crf 12 -pix_fmt yuv420p -vf pad="width=ceil(iw/2)*2:height=ceil(ih/2)*2" {}/video.mp4 < /dev/null'.format(dir_name, dir_name))
+    print("output video at {}/video.mp4".format(dir_name))
     
     if psnrs:
         mean_psnr = np.mean(psnrs)
