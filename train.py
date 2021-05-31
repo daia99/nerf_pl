@@ -140,6 +140,7 @@ class NeRFSystem(LightningModule):
     def validation_epoch_end(self, outputs):
         mean_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
         mean_psnr = torch.stack([x['val_psnr'] for x in outputs]).mean()
+        os.system(f'rsync -r /content/nerf_pl/ckpts/{hparams.exp_name} "/content/drive/My Drive"')
 
         return {'progress_bar': {'val_loss': mean_loss,
                                  'val_psnr': mean_psnr},
@@ -155,7 +156,7 @@ if __name__ == '__main__':
                                                                 '{epoch:d}'),
                                           monitor='val/loss',
                                           mode='min',
-                                          save_top_k=5,)
+                                          save_top_k=20,)
 
     logger = TestTubeLogger(
         save_dir="logs",
@@ -178,3 +179,4 @@ if __name__ == '__main__':
                       profiler=hparams.num_gpus==1)
 
     trainer.fit(system)
+    os.system(f'rsync -r /content/nerf_pl/ckpts/{hparams.exp_name} "/content/drive/My Drive"')

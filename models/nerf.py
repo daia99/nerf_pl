@@ -117,7 +117,7 @@ class NeRF(nn.Module):
 
         dir_encoding_input = torch.cat([xyz_encoding_final, input_dir], -1)
         dir_encoding = self.dir_encoding(dir_encoding_input)
-        rgb = self.rgb(dir_encoding)
+        rgb = self.rgb(dir_encoding) * (1 + 2 * 0.001) - 0.001 # widened sigmoid as in mip-nerf
 
         out = torch.cat([rgb, sigma], -1)
 

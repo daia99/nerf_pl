@@ -5,23 +5,19 @@ __all__ = ['render_rays']
 
 """
 Function dependencies: (-> means function calls)
-
 @render_rays -> @inference
-
 @render_rays -> @sample_pdf if there is fine model
 """
 
 def sample_pdf(bins, weights, N_importance, det=False, eps=1e-5):
     """
     Sample @N_importance samples from @bins with distribution defined by @weights.
-
     Inputs:
         bins: (N_rays, N_samples_+1) where N_samples_ is "the number of coarse samples per ray - 2"
         weights: (N_rays, N_samples_)
         N_importance: the number of samples to draw from the distribution
         det: deterministic or not
         eps: a small number to prevent division by zero
-
     Outputs:
         samples: the sampled samples
     """
@@ -69,7 +65,6 @@ def render_rays(models,
                 ):
     """
     Render rays by computing the output of @model applied on @rays
-
     Inputs:
         models: list of NeRF models (coarse and fine) defined in nerf.py
         embeddings: list of embedding models of origin and direction defined in nerf.py
@@ -83,7 +78,6 @@ def render_rays(models,
         white_back: whether the background is white (dataset dependent)
         test_time: whether it is test (inference only) or not. If True, it will not do inference
                    on coarse rgb to save time
-
     Outputs:
         result: dictionary containing final rgb and depth maps for coarse and fine models
     """
@@ -91,7 +85,6 @@ def render_rays(models,
     def inference(model, embedding_xyz, xyz_, dir_, dir_embedded, z_vals, weights_only=False):
         """
         Helper function that performs model inference.
-
         Inputs:
             model: NeRF model (coarse or fine)
             embedding_xyz: embedding module for xyz
@@ -103,7 +96,6 @@ def render_rays(models,
             dir_embedded: (N_rays, embed_dir_channels) embedded directions
             z_vals: (N_rays, N_samples_) depths of the sampled positions
             weights_only: do inference on sigma only or not
-
         Outputs:
             if weights_only:
                 weights: (N_rays, N_samples_): weights of each sample
@@ -152,7 +144,7 @@ def render_rays(models,
         noise = torch.randn(sigmas.shape, device=sigmas.device) * noise_std
 
         # compute alpha by the formula (3)
-        alphas = 1-torch.exp(-deltas*torch.relu(sigmas+noise)) # (N_rays, N_samples_)
+        alphas = 1-torch.exp(-deltas*torch.nn.Softplus()(sigmas+noise-1)) # (N_rays, N_samples_) # shifted softplus as in mip-nerf
         alphas_shifted = \
             torch.cat([torch.ones_like(alphas[:, :1]), 1-alphas+1e-10], -1) # [1, a1, a2, ...]
         weights = \
